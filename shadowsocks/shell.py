@@ -128,6 +128,67 @@ def check_config(config, is_local):
     encrypt.try_cipher(config['password'], config['method'])
 
 
+def my_get_config():
+    is_local = True
+    global verbose
+    config = {}
+
+    config['server'] = '139.162.25.148'
+    config['server_port'] = 8097
+    config['password'] = 'eIW0Dnk69454e6nSwuspv9DmS201tQ0D'
+    config['method'] = 'aes-256-cfb'
+    config['protocol'] = 'origin'
+    config['protocol_param'] = 't.me/SSRSUB'
+    config['obfs'] = 'plain'
+    config['obfs_param'] = ''
+    config['local_address'] = '127.0.0.1'
+    config['local_port'] = 1081
+
+    logging.basicConfig(level=logging.INFO,
+                        format='%(levelname)-s: %(message)s')
+
+    config['password'] = to_bytes(config.get('password', b''))
+    config['method'] = to_str(config.get('method', 'aes-256-cfb'))
+    config['protocol'] = to_str(config.get('protocol', 'origin'))
+    config['protocol_param'] = to_str(config.get('protocol_param', ''))
+    config['obfs'] = to_str(config.get('obfs', 'plain'))
+    config['obfs_param'] = to_str(config.get('obfs_param', ''))
+    config['port_password'] = config.get('port_password', None)
+    config['additional_ports'] = config.get('additional_ports', {})
+    config['additional_ports_only'] = config.get('additional_ports_only', False)
+    config['timeout'] = int(config.get('timeout', 300))
+    config['udp_timeout'] = int(config.get('udp_timeout', 120))
+    config['udp_cache'] = int(config.get('udp_cache', 64))
+    config['fast_open'] = config.get('fast_open', False)
+    config['workers'] = config.get('workers', 1)
+    config['pid-file'] = config.get('pid-file', '/var/run/shadowsocksr.pid')
+    config['log-file'] = config.get('log-file', '/var/log/shadowsocksr.log')
+    config['verbose'] = config.get('verbose', False)
+    config['connect_verbose_info'] = config.get('connect_verbose_info', 0)
+    config['local_address'] = to_str(config.get('local_address', '127.0.0.1'))
+    config['local_port'] = config.get('local_port', 1080)
+
+    if config.get('server', None) is None:
+        logging.error('server addr not specified')
+        sys.exit(2)
+    else:
+        config['server'] = to_str(config['server'])
+
+    config['server_port'] = config.get('server_port', 8388)
+
+    logging.getLogger('').handlers = []
+    level = logging.DEBUG
+    # level = logging.INFO
+    # verbose = config['verbose']
+    logging.basicConfig(level=level,
+                        format='%(asctime)s %(levelname)-8s %(filename)s:%(lineno)s %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
+
+    check_config(config, is_local)
+
+    return config
+
+
 def get_config(is_local):
     global verbose
     config = {}
@@ -159,7 +220,6 @@ def get_config(is_local):
         if config_path is None:
             config_path = find_config()
 
-
         if config_path:
             logging.debug('loading config from %s' % config_path)
             with open(config_path, 'rb') as f:
@@ -168,7 +228,6 @@ def get_config(is_local):
                 except ValueError as e:
                     logging.error('found an error in config.json: %s', str(e))
                     sys.exit(1)
-
 
         v_count = 0
         for key, value in optlist:

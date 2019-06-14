@@ -75,5 +75,50 @@ def main():
         shell.print_exception(e)
         sys.exit(1)
 
+def runClient():
+    """
+    运行客户端连接到服务器
+    :param config: dict, 节点参数
+    :return:
+    """
+    config = shell.my_get_config()
+
+    if not config.get('dns_ipv6', False):
+        asyncdns.IPV6_CONNECTION_SUPPORT = False
+
+    daemon.daemon_exec(config)
+    logging.info("local start with protocol[%s] password [%s] method [%s] obfs [%s] obfs_param [%s]" %
+                 (config['protocol'], config['password'], config['method'], config['obfs'], config['obfs_param']))
+
+    try:
+        logging.info("starting local at %s:%d" %
+                     (config['local_address'], config['local_port']))
+
+        dns_resolver = asyncdns.DNSResolver()
+        tcp_server = tcprelay.TCPRelay(config, dns_resolver, True)
+        udp_server = udprelay.UDPRelay(config, dns_resolver, True)
+        loop = eventloop.EventLoop()
+        dns_resolver.add_to_loop(loop)
+        tcp_server.add_to_loop(loop)
+        udp_server.add_to_loop(loop)
+
+        def handler(signum, _):
+            logging.warning('received SIGQUIT, doing graceful shutting down..')
+            tcp_server.close(next_tick=True)
+            udp_server.close(next_tick=True)
+        signal.signal(getattr(signal, 'SIGQUIT', signal.SIGTERM), handler)
+
+        def int_handler(signum, _):
+            sys.exit(1)
+        signal.signal(signal.SIGINT, int_handler)
+
+        daemon.set_user(config.get('user', None))
+        loop.run()
+    except Exception as e:
+        shell.print_exception(e)
+        sys.exit(1)
+
+
 if __name__ == '__main__':
-    main()
+    runClient()
+    # main()
