@@ -15,8 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, \
-    with_statement
 
 import sys
 import os
@@ -62,7 +60,7 @@ def main():
         udp_server.add_to_loop(loop)
 
         def handler(signum, _):
-            logging.warn('received SIGQUIT, doing graceful shutting down..')
+            logging.warning('received SIGQUIT, doing graceful shutting down..')
             tcp_server.close(next_tick=True)
             udp_server.close(next_tick=True)
         signal.signal(getattr(signal, 'SIGQUIT', signal.SIGTERM), handler)

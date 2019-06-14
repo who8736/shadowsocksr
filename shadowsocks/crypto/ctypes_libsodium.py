@@ -20,8 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from __future__ import absolute_import, division, print_function, \
-    with_statement
+
 
 import logging
 from ctypes import CDLL, c_char_p, c_int, c_ulonglong, byref, \

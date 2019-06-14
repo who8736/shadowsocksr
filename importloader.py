@@ -1,10 +1,11 @@
-﻿#!/usr/bin/python
+﻿import importlib
+#!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
 def load(name):
 	try:
 		obj = __import__(name)
-		reload(obj)
+		importlib.reload(obj)
 		return obj
 	except:
 		pass

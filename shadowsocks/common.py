@@ -15,8 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, \
-    with_statement
+
 
 import socket
 import struct
@@ -286,13 +285,11 @@ class IPNetwork(object):
         addr_family = is_ip(addr)
         if addr_family is socket.AF_INET:
             ip, = struct.unpack("!I", socket.inet_aton(addr))
-            return any(map(lambda n_ps: n_ps[0] == ip >> n_ps[1],
-                           self._network_list_v4))
+            return any([n_ps[0] == ip >> n_ps[1] for n_ps in self._network_list_v4])
         elif addr_family is socket.AF_INET6:
             hi, lo = struct.unpack("!QQ", inet_pton(addr_family, addr))
             ip = (hi << 64) | lo
-            return any(map(lambda n_ps: n_ps[0] == ip >> n_ps[1],
-                           self._network_list_v6))
+            return any([n_ps[0] == ip >> n_ps[1] for n_ps in self._network_list_v6])
         else:
             return False
 

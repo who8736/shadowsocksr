@@ -15,8 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, \
-    with_statement
+
 
 import os
 import json
@@ -388,7 +387,7 @@ def _decode_list(data):
 
 def _decode_dict(data):
     rv = {}
-    for key, value in data.items():
+    for key, value in list(data.items()):
         if hasattr(value, 'encode'):
             value = value.encode('utf-8')
         elif isinstance(value, list):

@@ -17,7 +17,7 @@
 if __name__ == '__main__':
     import tornado.ioloop
     import tornado.web
-    import urllib
+    import urllib.request, urllib.parse, urllib.error
 
     class MainHandler(tornado.web.RequestHandler):
         def get(self, project):
@@ -32,7 +32,7 @@ if __name__ == '__main__':
                     self.redirect(('https://img.shields.io/badge/'
                                    'coverage-%s-%s.svg'
                                    '?style=flat') %
-                                  (urllib.quote(coverage), color))
+                                  (urllib.parse.quote(coverage), color))
             except IOError:
                 raise tornado.web.HTTPError(404)
 

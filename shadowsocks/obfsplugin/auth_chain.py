@@ -14,8 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, \
-    with_statement
+
 
 import os
 import sys
@@ -57,7 +56,7 @@ class xorshift128plus(object):
         self.v0 = 0
         self.v1 = 0
 
-    def next(self):
+    def __next__(self):
         x = self.v0
         y = self.v1
         self.v0 = y
@@ -78,7 +77,7 @@ class xorshift128plus(object):
         self.v1 = struct.unpack('<Q', bin[8:16])[0]
 
         for i in range(4):
-            self.next()
+            next(self)
 
 def match_begin(str1, str2):
     if len(str1) >= len(str2):
@@ -286,20 +285,20 @@ class auth_chain_a(auth_base):
             return 0
         random.init_from_bin_len(last_hash, buf_size)
         if buf_size > 1300:
-            return random.next() % 31
+            return next(random) % 31
         if buf_size > 900:
-            return random.next() % 127
+            return next(random) % 127
         if buf_size > 400:
-            return random.next() % 521
-        return random.next() % 1021
+            return next(random) % 521
+        return next(random) % 1021
 
     def udp_rnd_data_len(self, last_hash, random):
         random.init_from_bin(last_hash)
-        return random.next() % 127
+        return next(random) % 127
 
     def rnd_start_pos(self, rand_len, random):
         if rand_len > 0:
-            return random.next() % 8589934609 % rand_len
+            return next(random) % 8589934609 % rand_len
         return 0
 
     def rnd_data(self, buf_size, buf, last_hash, random):
@@ -648,13 +647,13 @@ class auth_chain_b(auth_chain_a):
             self.data_size_list2 = []
         random = xorshift128plus()
         random.init_from_bin(key)
-        list_len = random.next() % 8 + 4
+        list_len = next(random) % 8 + 4
         for i in range(0, list_len):
-            self.data_size_list.append((int)(random.next() % 2340 % 2040 % 1440))
+            self.data_size_list.append((int)(next(random) % 2340 % 2040 % 1440))
         self.data_size_list.sort()
-        list_len = random.next() % 16 + 8
+        list_len = next(random) % 16 + 8
         for i in range(0, list_len):
-            self.data_size_list2.append((int)(random.next() % 2340 % 2040 % 1440))
+            self.data_size_list2.append((int)(next(random) % 2340 % 2040 % 1440))
         self.data_size_list2.sort()
 
     def set_server_info(self, server_info):
@@ -671,22 +670,22 @@ class auth_chain_b(auth_chain_a):
             return 0
         random.init_from_bin_len(last_hash, buf_size)
         pos = bisect.bisect_left(self.data_size_list, buf_size + self.server_info.overhead)
-        final_pos = pos + random.next() % (len(self.data_size_list))
+        final_pos = pos + next(random) % (len(self.data_size_list))
         if final_pos < len(self.data_size_list):
             return self.data_size_list[final_pos] - buf_size - self.server_info.overhead
 
         pos = bisect.bisect_left(self.data_size_list2, buf_size + self.server_info.overhead)
-        final_pos = pos + random.next() % (len(self.data_size_list2))
+        final_pos = pos + next(random) % (len(self.data_size_list2))
         if final_pos < len(self.data_size_list2):
             return self.data_size_list2[final_pos] - buf_size - self.server_info.overhead
         if final_pos < pos + len(self.data_size_list2) - 1:
             return 0
 
         if buf_size > 1300:
-            return random.next() % 31
+            return next(random) % 31
         if buf_size > 900:
-            return random.next() % 127
+            return next(random) % 127
         if buf_size > 400:
-            return random.next() % 521
-        return random.next() % 1021
+            return next(random) % 521
+        return next(random) % 1021
 

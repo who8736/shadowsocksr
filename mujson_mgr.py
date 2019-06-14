@@ -140,10 +140,10 @@ class MuMgr(object):
 			if 'port' in user and row['port'] == user['port']:
 				match = True
 			if match:
-				print("user [%s] port [%s] already exist" % (row['user'], row['port']))
+				print(("user [%s] port [%s] already exist" % (row['user'], row['port'])))
 				return
 		self.data.json.append(up)
-		print("### add user info %s" % self.userinfo(up))
+		print(("### add user info %s" % self.userinfo(up)))
 		self.data.save(self.config_path)
 
 	def edit(self, user):
@@ -155,9 +155,9 @@ class MuMgr(object):
 			if 'port' in user and row['port'] != user['port']:
 				match = False
 			if match:
-				print("edit user [%s]" % (row['user'],))
+				print(("edit user [%s]" % (row['user'],)))
 				row.update(user)
-				print("### new user info %s" % self.userinfo(row))
+				print(("### new user info %s" % self.userinfo(row)))
 				break
 		self.data.save(self.config_path)
 
@@ -171,7 +171,7 @@ class MuMgr(object):
 			if 'port' in user and row['port'] != user['port']:
 				match = False
 			if match:
-				print("delete user [%s]" % row['user'])
+				print(("delete user [%s]" % row['user']))
 				del self.data.json[index]
 				break
 			index += 1
@@ -188,14 +188,14 @@ class MuMgr(object):
 				match = False
 			if match:
 				row.update(up)
-				print("clear user [%s]" % row['user'])
+				print(("clear user [%s]" % row['user']))
 		self.data.save(self.config_path)
 
 	def list_user(self, user):
 		self.data.load(self.config_path)
 		if not user:
 			for row in self.data.json:
-				print("user [%s] port %s" % (row['user'], row['port']))
+				print(("user [%s] port %s" % (row['user'], row['port'])))
 			return
 		for row in self.data.json:
 			match = True
@@ -207,7 +207,7 @@ class MuMgr(object):
 				muid = None
 				if 'muid' in user:
 					muid = user['muid']
-				print("### user [%s] info %s" % (row['user'], self.userinfo(row, muid)))
+				print(("### user [%s] info %s" % (row['user'], self.userinfo(row, muid))))
 
 
 def print_server_help():

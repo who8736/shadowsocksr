@@ -15,8 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, \
-    with_statement
+
 
 import errno
 import traceback
@@ -71,7 +70,7 @@ class Manager(object):
 
         port_password = config['port_password']
         del config['port_password']
-        for port, password in port_password.items():
+        for port, password in list(port_password.items()):
             a_config = config.copy()
             a_config['server_port'] = int(port)
             a_config['password'] = password
@@ -160,7 +159,7 @@ class Manager(object):
                                                   separators=(',', ':')))
                 self._send_control_data(b'stat: ' + data)
 
-        for k, v in self._statistics.items():
+        for k, v in list(self._statistics.items()):
             r[k] = v
             i += 1
             # split the data into segments that fit in UDP packets

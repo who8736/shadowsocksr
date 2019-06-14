@@ -41,7 +41,7 @@ class TransferBase(object):
 			if id in self.last_get_transfer and id in last_transfer:
 				dt_transfer[id] = [self.last_get_transfer[id][0] - last_transfer[id][0], self.last_get_transfer[id][1] - last_transfer[id][1]]
 
-		for id in curr_transfer.keys():
+		for id in list(curr_transfer.keys()):
 			if id in self.force_update_transfer or id in self.mu_ports:
 				continue
 			#算出与上次记录的流量差值，保存于dt_transfer表
@@ -65,7 +65,7 @@ class TransferBase(object):
 		self.onlineuser_cache.sweep()
 
 		update_transfer = self.update_all_user(dt_transfer) #返回有更新的表
-		for id in update_transfer.keys(): #其增量加在此表
+		for id in list(update_transfer.keys()): #其增量加在此表
 			if id not in self.force_update_transfer: #但排除在force_update_transfer内的
 				last = self.last_update_transfer.get(id, [0,0])
 				self.last_update_transfer[id] = [last[0] + update_transfer[id][0], last[1] + update_transfer[id][1]]
@@ -109,7 +109,7 @@ class TransferBase(object):
 					cfg[name] = row[name]
 
 			merge_config_keys = ['password'] + read_config_keys
-			for name in cfg.keys():
+			for name in list(cfg.keys()):
 				if hasattr(cfg[name], 'encode'):
 					try:
 						cfg[name] = cfg[name].encode('utf-8')
@@ -183,7 +183,7 @@ class TransferBase(object):
 		if len(new_servers) > 0:
 			from shadowsocks import eventloop
 			self.event.wait(eventloop.TIMEOUT_PRECISION + eventloop.TIMEOUT_PRECISION / 2)
-			for port in new_servers.keys():
+			for port in list(new_servers.keys()):
 				passwd, cfg = new_servers[port]
 				self.new_server(port, passwd, cfg)
 
@@ -214,10 +214,10 @@ class TransferBase(object):
 
 	@staticmethod
 	def del_servers():
-		for port in [v for v in ServerPool.get_instance().tcp_servers_pool.keys()]:
+		for port in [v for v in list(ServerPool.get_instance().tcp_servers_pool.keys())]:
 			if ServerPool.get_instance().server_is_run(port) > 0:
 				ServerPool.get_instance().cb_del_server(port)
-		for port in [v for v in ServerPool.get_instance().tcp_ipv6_servers_pool.keys()]:
+		for port in [v for v in list(ServerPool.get_instance().tcp_ipv6_servers_pool.keys())]:
 			if ServerPool.get_instance().server_is_run(port) > 0:
 				ServerPool.get_instance().cb_del_server(port)
 
@@ -316,7 +316,7 @@ class DbTransfer(TransferBase):
 		query_sub_in = None
 		last_time = time.time()
 
-		for id in dt_transfer.keys():
+		for id in list(dt_transfer.keys()):
 			transfer = dt_transfer[id]
 			#小于最低更新流量的先不更新
 			update_trs = 1024 * (2048 - self.user_pass.get(id, 0) * 64)
@@ -451,7 +451,7 @@ class Dbv3Transfer(DbTransfer):
 					db=self.cfg["db"], charset='utf8')
 		conn.autocommit(True)
 
-		for id in dt_transfer.keys():
+		for id in list(dt_transfer.keys()):
 			transfer = dt_transfer[id]
 			bandwidth_thistime = bandwidth_thistime + transfer[0] + transfer[1]
 

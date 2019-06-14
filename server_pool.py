@@ -275,7 +275,7 @@ class ServerPool(object):
 		servers.update(self.udp_servers_pool)
 		servers.update(self.udp_ipv6_servers_pool)
 		ret = {}
-		for port in servers.keys():
+		for port in list(servers.keys()):
 			ret[port] = self.get_server_transfer(port)
 		for port in self.tcp_servers_pool:
 			u, d = self.get_server_mu_transfer(self.tcp_servers_pool[port])

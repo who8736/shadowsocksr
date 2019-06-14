@@ -156,7 +156,7 @@ class OrderedDict(dict):
         try:
             if not self:
                 return '%s()' % (self.__class__.__name__,)
-            return '%s(%r)' % (self.__class__.__name__, self.items())
+            return '%s(%r)' % (self.__class__.__name__, list(self.items()))
         finally:
             del _repr_running[call_key]
 

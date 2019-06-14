@@ -18,8 +18,7 @@
 # from ssloop
 # https://github.com/clowwindy/ssloop
 
-from __future__ import absolute_import, division, print_function, \
-    with_statement
+
 
 import os
 import time
@@ -84,7 +83,7 @@ class KqueueLoop(object):
                 results[fd] |= POLL_IN
             elif e.filter == select.KQ_FILTER_WRITE:
                 results[fd] |= POLL_OUT
-        return results.items()
+        return list(results.items())
 
     def register(self, fd, mode):
         self._fds[fd] = mode
@@ -116,7 +115,7 @@ class SelectLoop(object):
         for p in [(r, POLL_IN), (w, POLL_OUT), (x, POLL_ERR)]:
             for fd in p[0]:
                 results[fd] |= p[1]
-        return results.items()
+        return list(results.items())
 
     def register(self, fd, mode):
         if mode & POLL_IN:

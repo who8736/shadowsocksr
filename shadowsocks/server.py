@@ -15,8 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, \
-    with_statement
+
 
 import sys
 import os
@@ -76,7 +75,7 @@ def main():
     port_password = config['port_password']
     config_password = config.get('password', 'm')
     del config['port_password']
-    for port, password_obfs in port_password.items():
+    for port, password_obfs in list(port_password.items()):
         method = config["method"]
         protocol = config.get("protocol", 'origin')
         protocol_param = config.get("protocol_param", '')
@@ -149,8 +148,7 @@ def main():
     def run_server():
         def child_handler(signum, _):
             logging.warn('received SIGQUIT, doing graceful shutting down..')
-            list(map(lambda s: s.close(next_tick=True),
-                     tcp_servers + udp_servers))
+            list([s.close(next_tick=True) for s in tcp_servers + udp_servers])
         signal.signal(getattr(signal, 'SIGQUIT', signal.SIGTERM),
                       child_handler)
 
@@ -161,7 +159,7 @@ def main():
         try:
             loop = eventloop.EventLoop()
             dns_resolver.add_to_loop(loop)
-            list(map(lambda s: s.add_to_loop(loop), tcp_servers + udp_servers))
+            list([s.add_to_loop(loop) for s in tcp_servers + udp_servers])
 
             daemon.set_user(config.get('user', None))
             loop.run()
