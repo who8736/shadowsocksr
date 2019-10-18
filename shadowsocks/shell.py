@@ -20,6 +20,7 @@
 import os
 import json
 import sys
+import base64
 import getopt
 import logging
 from shadowsocks.common import to_bytes, to_str, IPNetwork, PortRange
@@ -128,21 +129,110 @@ def check_config(config, is_local):
     encrypt.try_cipher(config['password'], config['method'])
 
 
+def fix_base64_text(text):
+    text = text.replace('-', '+')
+    text = text.replace('_', '/')
+    return text + '=' * (4 - len(text) % 4)
+
+
+def url2dict(base64text):
+    if base64text[:6] == 'ssr://':
+        base64text = base64text[6:]
+    base64text = fix_base64_text(base64text)
+
+    url = base64.b64decode(base64text).decode().split(':')
+    # print(url)
+    # print(type(url))
+
+    config = {}
+    config['server'] = url[0]
+    config['server_port'] = url[1]
+    config['protocol'] = url[2]
+    config['method'] = url[3]
+    config['obfs'] = url[4]
+
+    password = base64.b64decode(url[5].split('/?')[0]).decode()
+    config['password'] = password
+
+    misc = url[5].split('/?')[1].split('&')
+    # print(password, misc)
+    for item in misc:
+        key, value = item.split('=')
+        value = fix_base64_text(value)
+        config[key] = base64.b64decode(value).decode()
+    # config['protocol_param'] = 't.me/SSRSUB'
+    # config['obfs_param'] = ''
+
+    # for k, v in config.items():
+    #    print(f'{k}=', v)
+
+    logging.basicConfig(level=logging.INFO,
+                        format='%(levelname)-s: %(message)s')
+
+    config['server'] = config.get('server', None)
+    if config['server'] is None:
+        logging.error('server addr not specified')
+        sys.exit(2)
+    else:
+        config['server'] = to_str(config['server'])
+
+    config['server_port'] = config.get('server_port', 8388)
+    config['password'] = to_bytes(config.get('password', b''))
+    config['method'] = to_str(config.get('method', 'aes-256-cfb'))
+    config['protocol'] = to_str(config.get('protocol', 'origin'))
+    config['protocol_param'] = to_str(config.get('protocol_param', ''))
+    config['obfs'] = to_str(config.get('obfs', 'plain'))
+    config['obfs_param'] = to_str(config.get('obfs_param', ''))
+    config['port_password'] = config.get('port_password', None)
+    config['additional_ports'] = config.get('additional_ports', {})
+    config['additional_ports_only'] = config.get('additional_ports_only', False)
+    config['timeout'] = int(config.get('timeout', 300))
+    config['udp_timeout'] = int(config.get('udp_timeout', 120))
+    config['udp_cache'] = int(config.get('udp_cache', 64))
+    config['fast_open'] = config.get('fast_open', False)
+    config['workers'] = config.get('workers', 1)
+    config['pid-file'] = config.get('pid-file', '/var/run/shadowsocksr.pid')
+    config['log-file'] = config.get('log-file', '/var/log/shadowsocksr.log')
+    config['verbose'] = config.get('verbose', False)
+    config['connect_verbose_info'] = config.get('connect_verbose_info', 0)
+    config['local_address'] = to_str(config.get('local_address', '127.0.0.1'))
+    config['local_port'] = config.get('local_port', 1080)
+
+
+    logging.getLogger('').handlers = []
+    level = logging.DEBUG
+    # level = logging.INFO
+    # verbose = config['verbose']
+    fmt_str = '%(asctime)s %(levelname)-8s %(filename)s:%(lineno)s %(message)s'
+    logging.basicConfig(level=level,
+                        format=fmt_str,
+                        datefmt='%Y-%m-%d %H:%M:%S')
+
+    is_local = True
+    global verbose
+    check_config(config, is_local)
+
+    return config
+
+
 def my_get_config():
     is_local = True
     global verbose
-    config = {}
+    ssr_text = 'ssr://MTM4LjY4LjIxNy44NDoxODE5NDpvcmlnaW46YWVzLTI1Ni1jZmI6cGxhaW46YVhONExubDBMVFkxTVRFME9UZ3kvP29iZnNwYXJhbT0mcmVtYXJrcz1XLWUtanVXYnZWM21tN1RscEpydnZKcG9kSFJ3T2k4dmRDNXRaUzlvWldsclpXcHAmZ3JvdXA9NmJ1UjU2ZVI1b3FBNXAybDVaV20'
+    config = url2dict(ssr_text)
+    # config = {}
 
-    config['server'] = '139.162.25.148'
-    config['server_port'] = 8097
-    config['password'] = 'eIW0Dnk69454e6nSwuspv9DmS201tQ0D'
-    config['method'] = 'aes-256-cfb'
-    config['protocol'] = 'origin'
-    config['protocol_param'] = 't.me/SSRSUB'
-    config['obfs'] = 'plain'
-    config['obfs_param'] = ''
-    config['local_address'] = '127.0.0.1'
-    config['local_port'] = 1081
+
+    # config['server'] = '139.162.25.148'
+    # config['server_port'] = 8097
+    # config['password'] = 'eIW0Dnk69454e6nSwuspv9DmS201tQ0D'
+    # config['method'] = 'aes-256-cfb'
+    # config['protocol'] = 'origin'
+    # config['protocol_param'] = 't.me/SSRSUB'
+    # config['obfs'] = 'plain'
+    # config['obfs_param'] = ''
+    # config['local_address'] = '127.0.0.1'
+    # config['local_port'] = 1081
 
     logging.basicConfig(level=logging.INFO,
                         format='%(levelname)-s: %(message)s')

@@ -75,13 +75,13 @@ def main():
         shell.print_exception(e)
         sys.exit(1)
 
-def runClient(ssr):
+def runClient():
     """
     运行客户端连接到服务器
     :param config: dict, 节点参数
     :return:
     """
-    config = shell.url2dict(ssr)
+    config = shell.my_get_config()
 
     if not config.get('dns_ipv6', False):
         asyncdns.IPV6_CONNECTION_SUPPORT = False
@@ -89,6 +89,8 @@ def runClient(ssr):
     daemon.daemon_exec(config)
     logging.info("local start with protocol[%s] password [%s] method [%s] obfs [%s] obfs_param [%s]" %
                  (config['protocol'], config['password'], config['method'], config['obfs'], config['obfs_param']))
+
+    return
 
     try:
         logging.info("starting local at %s:%d" %
@@ -120,9 +122,5 @@ def runClient(ssr):
 
 
 if __name__ == '__main__':
-    # runClient()
+    runClient()
     # main()
-
-    ssr_text = 'ssr://MTM4LjY4LjIxNy44NDoxODE5NDpvcmlnaW46YWVzLTI1Ni1jZmI6cGxhaW46YVhONExubDBMVFkxTVRFME9UZ3kvP29iZnNwYXJhbT0mcmVtYXJrcz1XLWUtanVXYnZWM21tN1RscEpydnZKcG9kSFJ3T2k4dmRDNXRaUzlvWldsclpXcHAmZ3JvdXA9NmJ1UjU2ZVI1b3FBNXAybDVaV20'
-    runClient(ssr_text)
-    # shell.url2dict(ssr_text)
