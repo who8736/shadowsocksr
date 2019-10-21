@@ -151,7 +151,12 @@ def url2dict(base64text):
     config['method'] = url[3]
     config['obfs'] = url[4]
 
-    password = base64.b64decode(url[5].split('/?')[0]).decode()
+    print(url[5])
+    passwordBase64Text = url[5].split('/?')[0]
+    print(passwordBase64Text)
+    passwordBase64Text = fix_base64_text(passwordBase64Text)
+    print(passwordBase64Text)
+    password = base64.b64decode(passwordBase64Text).decode()
     config['password'] = password
 
     misc = url[5].split('/?')[1].split('&')
@@ -218,7 +223,7 @@ def url2dict(base64text):
 def my_get_config():
     is_local = True
     global verbose
-    ssr_text = 'ssr://MTM4LjY4LjIxNy44NDoxODE5NDpvcmlnaW46YWVzLTI1Ni1jZmI6cGxhaW46YVhONExubDBMVFkxTVRFME9UZ3kvP29iZnNwYXJhbT0mcmVtYXJrcz1XLWUtanVXYnZWM21tN1RscEpydnZKcG9kSFJ3T2k4dmRDNXRaUzlvWldsclpXcHAmZ3JvdXA9NmJ1UjU2ZVI1b3FBNXAybDVaV20'
+    ssr_text = 'ssr://NDUuMTMwLjE0NS4xNjM6ODA6YXV0aF9hZXMxMjhfbWQ1OnJjNC1tZDU6aHR0cF9zaW1wbGU6YUhSMGNEb3ZMM1F1WTI0dlJVZEtTWGx5YkEvP29iZnNwYXJhbT0mcHJvdG9wYXJhbT1kQzV0WlM5VFUxSlRWVUkmcmVtYXJrcz1VMU5TVkU5UFRGOXVkV3hzT2pRMiZncm91cD1WMWRYTGxOVFVsUlBUMHd1UTA5Tg'
     config = url2dict(ssr_text)
     # config = {}
 

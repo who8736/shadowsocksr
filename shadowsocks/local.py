@@ -21,12 +21,14 @@ import os
 import logging
 import signal
 
+
 if __name__ == '__main__':
     import inspect
     file_path = os.path.dirname(os.path.realpath(inspect.getfile(inspect.currentframe())))
     sys.path.insert(0, os.path.join(file_path, '../'))
 
 from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, asyncdns
+from shadowsocks.check import check
 
 
 def main():
@@ -106,14 +108,19 @@ def runClient(ssr):
             logging.warning('received SIGQUIT, doing graceful shutting down..')
             tcp_server.close(next_tick=True)
             udp_server.close(next_tick=True)
-        signal.signal(getattr(signal, 'SIGQUIT', signal.SIGTERM), handler)
+        # signal.signal(getattr(signal, 'SIGQUIT', signal.SIGTERM), handler)
 
         def int_handler(signum, _):
             sys.exit(1)
-        signal.signal(signal.SIGINT, int_handler)
+        # signal.signal(signal.SIGINT, int_handler)
 
         daemon.set_user(config.get('user', None))
         loop.run()
+        # if check():
+        #     print('验证完成：', ssr_text)
+        #     tcp_server.close(next_tick=True)
+        #     udp_server.close(next_tick=True)
+
     except Exception as e:
         shell.print_exception(e)
         sys.exit(1)
@@ -123,6 +130,9 @@ if __name__ == '__main__':
     # runClient()
     # main()
 
-    ssr_text = 'ssr://MTM4LjY4LjIxNy44NDoxODE5NDpvcmlnaW46YWVzLTI1Ni1jZmI6cGxhaW46YVhONExubDBMVFkxTVRFME9UZ3kvP29iZnNwYXJhbT0mcmVtYXJrcz1XLWUtanVXYnZWM21tN1RscEpydnZKcG9kSFJ3T2k4dmRDNXRaUzlvWldsclpXcHAmZ3JvdXA9NmJ1UjU2ZVI1b3FBNXAybDVaV20'
+    # 正常服务器地址，用于验证成功的情况
+    ssr_text = 'ssr://NDUuMTMwLjE0NS4xNjM6ODA6YXV0aF9hZXMxMjhfbWQ1OnJjNC1tZDU6aHR0cF9zaW1wbGU6YUhSMGNEb3ZMM1F1WTI0dlJVZEtTWGx5YkEvP29iZnNwYXJhbT0mcHJvdG9wYXJhbT1kQzV0WlM5VFUxSlRWVUkmcmVtYXJrcz1VMU5TVkU5UFRGOXVkV3hzT2pRMiZncm91cD1WMWRYTGxOVFVsUlBUMHd1UTA5Tg'
+    # 无效服务器地址，用于验证失败的情况
+    # ssr_text = 'ssr://c2ctYXp1cmUtMS5wdWZmdmlwLmNvbTo0NDM6YXV0aF9hZXMxMjhfbWQ1OmNoYWNoYTIwOmh0dHBfc2ltcGxlOlVHRnZablUvP29iZnNwYXJhbT0mcHJvdG9wYXJhbT1ORFEwTnprNmJrbHBTMGxDJnJlbWFya3M9VTFOU1ZFOVBURjl1ZFd4c09qTTAmZ3JvdXA9VjFkWExsTlRVbFJQVDB3dVEwOU4'
     runClient(ssr_text)
     # shell.url2dict(ssr_text)
