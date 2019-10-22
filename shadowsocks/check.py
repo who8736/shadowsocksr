@@ -1,5 +1,7 @@
 import requests
+import json
 
+from config import RETRY_MAX, OK_CNT, TIMEOUT, CHECK_URL, INFILENAME
 
 def check(port=1080):
     proxy = f'127.0.0.1:{port}'
@@ -8,10 +10,6 @@ def check(port=1080):
                }
 
     cnt = 0
-    RETRY_MAX = 6
-    OK_CNT = 3
-    TIMEOUT = 10
-    CHECK_URL = 'https://www.youtube.com'
     # CHECK_URL = 'http://www.google.com'
     for i in range(1, RETRY_MAX + 1):
         print(f'第{i}次验证')
@@ -33,6 +31,13 @@ def check(port=1080):
         return False
 
 
+def readJson():
+    with open(INFILENAME) as load_f:
+        configDict = json.load(load_f)
+        print(configDict)
+
+
 if __name__ == '__main__':
-    check()
+    # check()
     pass
+    readJson()

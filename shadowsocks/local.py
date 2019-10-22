@@ -77,13 +77,13 @@ def main():
         shell.print_exception(e)
         sys.exit(1)
 
-def runClient(ssr):
+def runClient(config):
     """
     运行客户端连接到服务器
     :param config: dict, 节点参数
     :return:
     """
-    config = shell.url2dict(ssr)
+    # config = shell.url2dict(ssr)
 
     if not config.get('dns_ipv6', False):
         asyncdns.IPV6_CONNECTION_SUPPORT = False

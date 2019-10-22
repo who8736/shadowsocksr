@@ -17,7 +17,7 @@ setup(
     package_data={
         'shadowsocks': ['README.rst', 'LICENSE']
     },
-    install_requires=[],
+    install_requires=['requests'],
     entry_points="""
     [console_scripts]
     sslocal = shadowsocks.local:main
