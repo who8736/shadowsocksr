@@ -138,6 +138,8 @@ def fix_base64_text(text):
 def url2dict(base64text):
     if base64text[:6] == 'ssr://':
         base64text = base64text[6:]
+    elif base64text[:5] == 'ss://':
+        base64text = base64text[5:]
     base64text = fix_base64_text(base64text)
 
     url = base64.b64decode(base64text).decode().split(':')
@@ -151,11 +153,11 @@ def url2dict(base64text):
     config['method'] = url[3]
     config['obfs'] = url[4]
 
-    print(url[5])
+    # print(url[5])
     passwordBase64Text = url[5].split('/?')[0]
-    print(passwordBase64Text)
+    # print(passwordBase64Text)
     passwordBase64Text = fix_base64_text(passwordBase64Text)
-    print(passwordBase64Text)
+    # print(passwordBase64Text)
     password = base64.b64decode(passwordBase64Text).decode()
     config['password'] = password
 
@@ -182,6 +184,7 @@ def url2dict(base64text):
         config['server'] = to_str(config['server'])
 
     config['server_port'] = config.get('server_port', 8388)
+    # config['password'] = str(config.get('password', ''))
     config['password'] = to_bytes(config.get('password', b''))
     config['method'] = to_str(config.get('method', 'aes-256-cfb'))
     config['protocol'] = to_str(config.get('protocol', 'origin'))

@@ -1,5 +1,6 @@
 from threading import Thread
 from multiprocessing.dummy import Pool as ThreadPool
+import base64
 
 from time import sleep
 import requests
@@ -7,7 +8,8 @@ import json
 from queue import Queue
 
 from shadowsocks.local import runClient
-from shadowsocks.shell import url2dict
+from shadowsocks.shell import url2dict, fix_base64_text
+from shadowsocks.common import to_bytes, to_str
 from config import RETRY_MAX, OK_CNT, TIMEOUT, CHECK_URL
 from config import INFILENAME, OUTFILENAME, MAXTHREAD
 
@@ -15,6 +17,7 @@ from config import INFILENAME, OUTFILENAME, MAXTHREAD
 
 port_queue = Queue()
 good_node_queue = Queue()
+
 
 def _check(port):
     proxy = f'127.0.0.1:{port}'
@@ -33,13 +36,11 @@ def _check(port):
             response = requests.get(CHECK_URL, proxies=proxies, timeout=TIMEOUT)
             # print(response.text)
             cnt += 1
-        except requests.exceptions.ConnectionError as e:
-            print('Error', e.args)
-            err_cnt += 1
-        except requests.exceptions.ReadTimeout as e:
-            print('Error', e.args)
-            err_cnt += 1
-        except requests.exceptions.ChunkedEncodingError as e:
+        # except (requests.exceptions.ConnectionError,
+        #         requests.exceptions.ReadTimeout,
+        #         requests.exceptions.ChunkedEncodingError,
+        #         OpenSSL.SSL.Error) as e:
+        except Exception as e:
             print('Error', e.args)
             err_cnt += 1
 
@@ -71,8 +72,11 @@ def readJson():
     # writeJson(list(nodesDict.values()))
     return list(nodesDict.values())
 
+
 def writeJson(nodes):
     print('nodesDict类型: ', type(nodes))
+    for node in nodes:
+        node['password'] = to_str(node['password'])
     # configDict = {}
     with open(INFILENAME, encoding='utf8') as load_f:
         configDict = json.load(load_f)
@@ -93,12 +97,13 @@ class Checker(Thread):
 
 def fixConfig(config):
     config['server_port'] = config.get('server_port', 8388)
-    config['password'] = config.get('password', b'')
-    config['method'] = str(config.get('method', 'aes-256-cfb'))
-    config['protocol'] = str(config.get('protocol', 'origin'))
-    config['protocol_param'] = str(config.get('protocol_param', ''))
-    config['obfs'] = str(config.get('obfs', 'plain'))
-    config['obfs_param'] = str(config.get('obfs_param', ''))
+    # config['password'] = str(config.get('password', ''))
+    config['password'] = to_bytes(config.get('password', b''))
+    config['method'] = to_str(config.get('method', 'aes-256-cfb'))
+    config['protocol'] = to_str(config.get('protocol', 'origin'))
+    config['protocol_param'] = to_str(config.get('protocol_param', ''))
+    config['obfs'] = to_str(config.get('obfs', 'plain'))
+    config['obfs_param'] = to_str(config.get('obfs_param', ''))
     config['port_password'] = config.get('port_password', None)
     config['additional_ports'] = config.get('additional_ports', {})
     config['additional_ports_only'] = config.get('additional_ports_only', False)
@@ -111,9 +116,11 @@ def fixConfig(config):
     config['log-file'] = config.get('log-file', '/var/log/shadowsocksr.log')
     config['verbose'] = config.get('verbose', False)
     config['connect_verbose_info'] = config.get('connect_verbose_info', 0)
-    config['local_address'] = str(config.get('local_address', '127.0.0.1'))
+    config['local_address'] = to_str(config.get('local_address', '127.0.0.1'))
     config['local_port'] = config.get('local_port', 1080)
+
     return config
+
 
 def check(config):
     """
@@ -164,7 +171,6 @@ def testChecker():
     print('验证结果：', flag)
     #################################################
 
-
     #################################################
     # 读取配置文件中的节点，去重后存入新的配置文件
     nodes = readJson()
@@ -183,12 +189,11 @@ def testChecker():
     print('去重后节点数: ', len(nodesDict.keys()))
     #################################################
 
-if __name__ == '__main__':
-    pass
+
+def checkAll(nodes):
     for port in range(1080, 1090):
         port_queue.put(port)
 
-    nodes = readJson()
     pool = ThreadPool(processes=MAXTHREAD)
     pool.map(check, nodes)
     pool.close()
@@ -207,4 +212,52 @@ if __name__ == '__main__':
         good_nodes.append(node)
     writeJson(good_nodes)
     print('全部验证完成！！！')
+
+
+def convertURL():
+    pass
+
+
+def downNodes():
+    nodesDict = {}
+    cnt = 0
+    with open('subscription.conf', encoding='utf8') as f:
+        for sub_url in f.readlines():
+            sub_url = sub_url.strip()
+            try:
+                response = requests.get(sub_url)
+                print(sub_url)
+                # print(response)
+                # print(response.text)
+                ssr_text = fix_base64_text(response.text)
+                urls = base64.b64decode(ssr_text).decode('utf8').split('\n')
+                # print(urls)
+                for url in urls:
+                    config = url2dict(url)
+                    cnt += 1
+                    host = config['server']
+                    port = config['server_port']
+                    key = f'{host}:{port}'
+                    nodesDict[key] = config
+            except Exception as e:
+                print(e)
+            finally:
+                pass
+
+    # writeJson(list(nodesDict.values()))
+    print('读取节点数：', cnt)
+    print('节点总数：', len(list(nodesDict.values())))
+    print(list(nodesDict.values()))
+    return list(nodesDict.values())
+
+
+if __name__ == '__main__':
+    pass
+    # downNodes()
+    # nodes = readJson()
+    nodes = downNodes()
+    # print(nodes)
+    # nodes = nodes[:6]
+    #
+    checkAll(nodes)
 
