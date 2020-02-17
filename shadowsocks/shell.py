@@ -130,9 +130,12 @@ def check_config(config, is_local):
 
 
 def fix_base64_text(text):
+    text = text.strip()
     text = text.replace('-', '+')
     text = text.replace('_', '/')
-    return text + '=' * (4 - len(text) % 4)
+    if len(text) % 4 > 0:
+        text += '=' * (4 - len(text) % 4)
+    return text
 
 
 def url2dict(base64text):

@@ -12,7 +12,7 @@ from shadowsocks.shell import url2dict, fix_base64_text
 from shadowsocks.common import to_bytes, to_str
 from config import RETRY_MAX, OK_CNT, TIMEOUT, CHECK_URL
 from config import INFILENAME, OUTFILENAME, MAXTHREAD
-
+from config import MAINPROXYPORT
 # from shadowsocks.check import check
 
 port_queue = Queue()
@@ -218,30 +218,57 @@ def convertURL():
     pass
 
 
+def _requests(url):
+    response = ''
+    proxy = f'127.0.0.1:{MAINPROXYPORT}'
+    proxies = {'http': 'socks5://' + proxy,
+               'https': 'socks5://' + proxy
+               }
+    try:
+        response = requests.get(url)
+    except Exception as e:
+        print(e)
+        try:
+            response = requests.get(url, proxies=proxies, timeout=TIMEOUT)
+        except Exception as ee:
+            print(ee)
+    finally:
+        if isinstance(response, str):
+            return response
+        else:
+            return response.text
+
+
+
+
 def downNodes():
     nodesDict = {}
     cnt = 0
     with open('subscription.conf', encoding='utf8') as f:
         for sub_url in f.readlines():
             sub_url = sub_url.strip()
+            cntsub = 0
+            # print('下载地址: ', sub_url)
             try:
-                response = requests.get(sub_url)
-                print(sub_url)
+                # response = requests.get(sub_url)
+                response = _requests(sub_url)
                 # print(response)
                 # print(response.text)
-                ssr_text = fix_base64_text(response.text)
+                ssr_text = fix_base64_text(response)
                 urls = base64.b64decode(ssr_text).decode('utf8').split('\n')
                 # print(urls)
                 for url in urls:
                     config = url2dict(url)
                     cnt += 1
+                    cntsub += 1
                     host = config['server']
                     port = config['server_port']
                     key = f'{host}:{port}'
                     nodesDict[key] = config
             except Exception as e:
-                print(e)
+                print('下载错误：', e)
             finally:
+                print(cntsub, '个， 从下载地址: ', sub_url, )
                 pass
 
     # writeJson(list(nodesDict.values()))
