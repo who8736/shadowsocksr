@@ -19,10 +19,10 @@ port_queue = Queue()
 good_node_queue = Queue()
 
 
-def _check(port):
+def _check(hostIP, hostPort, port):
     proxy = f'127.0.0.1:{port}'
-    proxies = {'http': 'socks5://' + proxy,
-               'https': 'socks5://' + proxy
+    proxies = {'http': 'socks5h://' + proxy,
+               'https': 'socks5h://' + proxy
                }
 
     cnt = 0
@@ -41,7 +41,7 @@ def _check(port):
         #         requests.exceptions.ChunkedEncodingError,
         #         OpenSSL.SSL.Error) as e:
         except Exception as e:
-            print('Error', e.args)
+            print(f'{hostIP}:{hostPort} Error', e.args)
             err_cnt += 1
 
     print(f'验证{RETRY_MAX}次， 通过{cnt}次')
@@ -132,13 +132,15 @@ def check(config):
     config = fixConfig(config)
     port = port_queue.get()
     config['local_port'] = port
+    hostIP = config['server']
+    hostPort = config['server_port']
     checker = Checker(config)
     print('启动子线程')
     checker.setDaemon(True)
     checker.start()
     sleep(3)
     print('开始验证')
-    flag = _check(port)
+    flag = _check(hostIP, hostPort, port)
     print('验证结果：', flag)
     port_queue.put(port)
 
@@ -259,6 +261,8 @@ def downNodes():
                 # print(urls)
                 for url in urls:
                     config = url2dict(url)
+                    if config is None:
+                        continue
                     cnt += 1
                     cntsub += 1
                     host = config['server']
@@ -274,7 +278,7 @@ def downNodes():
     # writeJson(list(nodesDict.values()))
     print('读取节点数：', cnt)
     print('节点总数：', len(list(nodesDict.values())))
-    print(list(nodesDict.values()))
+    # print(list(nodesDict.values()))
     return list(nodesDict.values())
 
 
@@ -284,6 +288,8 @@ if __name__ == '__main__':
     # nodes = readJson()
     nodes = downNodes()
     # print(nodes)
+    for node in nodes:
+        print(node)
     # nodes = nodes[:6]
     #
     checkAll(nodes)

@@ -143,6 +143,8 @@ def url2dict(base64text):
         base64text = base64text[6:]
     elif base64text[:5] == 'ss://':
         base64text = base64text[5:]
+    else:
+        return
     base64text = fix_base64_text(base64text)
 
     url = base64.b64decode(base64text).decode().split(':')
