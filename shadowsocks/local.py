@@ -28,7 +28,7 @@ if __name__ == '__main__':
     sys.path.insert(0, os.path.join(file_path, '../'))
 
 from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, asyncdns
-from shadowsocks.check import check
+# from shadowsocks.check import check
 
 
 def main():

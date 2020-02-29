@@ -1,17 +1,21 @@
 from threading import Thread
 from multiprocessing.dummy import Pool as ThreadPool
 import base64
-
+import os
 from time import sleep
 import requests
 import json
 from queue import Queue
+import signal
+
+import psutil
+import win32api
 
 from shadowsocks.local import runClient
 from shadowsocks.shell import url2dict, fix_base64_text
 from shadowsocks.common import to_bytes, to_str
 from config import RETRY_MAX, OK_CNT, TIMEOUT, CHECK_URL
-from config import INFILENAME, OUTFILENAME, MAXTHREAD
+from config import PATH, CONFIGFILENAME, MAXTHREAD
 from config import MAINPROXYPORT
 # from shadowsocks.check import check
 
@@ -43,10 +47,12 @@ def _check(hostIP, hostPort, port):
         except Exception as e:
             print(f'{hostIP}:{hostPort} Error', e.args)
             err_cnt += 1
+        if cnt >= OK_CNT:
+            break
 
-    print(f'验证{RETRY_MAX}次， 通过{cnt}次')
+    # print(f'验证{RETRY_MAX}次， 通过{cnt}次')
     if cnt >= OK_CNT:
-        print('验证通过')
+        print(f'验证通过:{hostIP}:{hostPort}')
         return True
     else:
         print('验证失败')
@@ -54,7 +60,8 @@ def _check(hostIP, hostPort, port):
 
 
 def readJson():
-    with open(INFILENAME, encoding='utf8') as load_f:
+    infilename = os.path.join(PATH, CONFIGFILENAME)
+    with open(infilename, encoding='utf8') as load_f:
         configs = json.load(load_f)
         # print(configs)
         nodes = configs['configs']
@@ -78,11 +85,35 @@ def writeJson(nodes):
     for node in nodes:
         node['password'] = to_str(node['password'])
     # configDict = {}
-    with open(INFILENAME, encoding='utf8') as load_f:
+
+    infilename = os.path.join(PATH, CONFIGFILENAME)
+    with open(infilename, encoding='utf8') as load_f:
         configDict = json.load(load_f)
     configDict['configs'] = nodes
-    with open(OUTFILENAME, 'w') as load_f:
+
+    # 停止进程
+    for pid in psutil.pids():
+        p = psutil.Process(pid)
+        # print(p.name())
+        if p.name() == r'ShadowsocksR-dotnet4.0.exe':
+            try:
+                kill_pid = os.kill(pid, signal.SIGABRT)
+                print('进程成功结束， 返回值：', kill_pid)
+            except Exception as e:
+                print('结束进程失败：', e)
+
+    _name = os.path.splitext(infilename)
+    oldfilename = _name[0] + '-old' + _name[1]
+    if os.path.isfile(oldfilename):
+        os.remove(oldfilename)
+    os.rename(infilename, oldfilename)
+    with open(infilename, 'w') as load_f:
         json.dump(configDict, load_f)
+
+    # 启动进程
+    command = '"' + os.path.join(PATH, r'ShadowsocksR-dotnet4.0.exe') + '"'
+    win32api.ShellExecute(0, 'open', command, '', '', 1)
+    # os.system(os.path.join(PATH, r'ShadowsocksR-dotnet4.0.exe'))
 
 
 class Checker(Thread):
@@ -284,13 +315,23 @@ def downNodes():
 
 if __name__ == '__main__':
     pass
-    # downNodes()
-    # nodes = readJson()
     nodes = downNodes()
-    # print(nodes)
     for node in nodes:
         print(node)
-    # nodes = nodes[:6]
-    #
     checkAll(nodes)
+
+    # for pid in psutil.pids():
+    #     p = psutil.Process(pid)
+    #     # print(p.name())
+    #     if p.name() == r'ShadowsocksR-dotnet4.0.exe':
+    #         try:
+    #             kill_pid = os.kill(pid, signal.SIGABRT)
+    #             print('进程成功结束， 返回值：', kill_pid)
+    #         except Exception as e:
+    #             print('结束进程失败：', e)
+
+    # filename = 'start "' + os.path.join(PATH, r'ShadowsocksR-dotnet4.0.exe') + '" /B'
+    # filename = '"' + os.path.join(PATH, r'ShadowsocksR-dotnet4.0.exe') + '"'
+    # print(filename)
+    # win32api.ShellExecute(0, 'open', filename, '', '', 0)
 

@@ -4,6 +4,7 @@ TIMEOUT = 20
 MAINPROXYPORT = 10802
 # CHECK_URL = 'https://www.youtube.com'
 CHECK_URL = 'https://sukebei.nyaa.si'
-INFILENAME = 'D:\\setup files\\ShadowsocksR\\gui-config.json'
-OUTFILENAME = 'D:\\setup files\\ShadowsocksR\\gui-config-new.json'
+PATH = 'D:\\setup files\\ShadowsocksR\\'
+CONFIGFILENAME = 'gui-config.json'
+
 MAXTHREAD = 10

@@ -1,7 +1,7 @@
 import requests
 import json
 
-from config import RETRY_MAX, OK_CNT, TIMEOUT, CHECK_URL, INFILENAME
+from config import RETRY_MAX, OK_CNT, TIMEOUT, CHECK_URL
 
 def check(port=1080):
     proxy = f'127.0.0.1:{port}'
