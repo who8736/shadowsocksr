@@ -254,8 +254,8 @@ def convertURL():
 def _requests(url):
     response = ''
     proxy = f'127.0.0.1:{MAINPROXYPORT}'
-    proxies = {'http': 'socks5://' + proxy,
-               'https': 'socks5://' + proxy
+    proxies = {'http': 'socks5h://' + proxy,
+               'https': 'socks5h://' + proxy
                }
     try:
         response = requests.get(url, timeout=TIMEOUT)
