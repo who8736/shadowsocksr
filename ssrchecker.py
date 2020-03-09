@@ -258,7 +258,7 @@ def _requests(url):
                'https': 'socks5://' + proxy
                }
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=TIMEOUT)
     except Exception as e:
         print(e)
         try:
